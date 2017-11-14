@@ -1,0 +1,6 @@
+ToDo:
+Add details to this readme
+Add help function
+Create a preview mode so the search and replace can be validated. 
+Create a test that can run at the end to verify what else needs to be fixed in a file. 
+Create a continuous mode that you can change the regex each time preview and then confirm or deny and then run a different regex on the same file. 
