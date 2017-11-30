@@ -4,31 +4,73 @@ use warnings;
 use strict;
 
 use Getopt::Std;
-use POSIX qw(strftime);
 use File::Copy;
 
 my %opts;
-getopts('i:f:r:',  \%opts);
-my $file = $opts{i};
-my $regex = $opts{f};
-my $replace = $opts{r};
+getopts('rt',  \%opts);
+my $file = '';
 
-mkdir 'farBak' if (!-d 'farBak');
-my $time = strftime ("%s", localtime);
+sub massage {
+	
+	my $line = shift;
+	$line =~ s///g;
+	return $line;
 
-copy($file, "farBak/$file.$time") or die "Could not create farBak/$file.$time as a backup.";
+}
+
+sub test {
+	my $line = shift;
+	if ( $line  ) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 open( my $in, '<', $file );
 open( my $out, '>', "$file.new" );
 
 
+my $lineNumber = 1;
 while ( my $line = <$in> ) {
 
-    $line =~ s/$regex/$replace/;
-    print $out $line;
+	if ( $opts{t} ) {
+
+		if ( test($line) ) {
+			print "\n$lineNumber\n";
+			print $line;
+		}
+
+	} elsif ( $opts{r} ) {
+
+		if ( test($line) ) {
+			$line = massage($line);
+		}
+		print $out $line;
+
+	} else {
+		if ( test($line) ) {
+			print "\n$lineNumber\n";
+			print $line;
+			print "-------------------\n";
+			$line = massage($line);
+			print $line;
+		}
+
+	}
+	++$lineNumber;
 }
 close $in;
 close $out;
 
-unlink $in;
-move( "$file.new", $file);
+if ( $opts{r} ) {
+
+	my $time = time();
+	mkdir 'farBak' if (!-d 'farBak');
+	copy($file, "farBak/$file.$time") or die "Could not create farBak/$file.$time as a backup.";
+	unlink $file;
+	move( "$file.new", $file);
+	unlink "$file.new";
+
+}
+
